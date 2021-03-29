@@ -225,5 +225,16 @@ STOPSIGNAL SIGWINCH
 
 COPY httpd-foreground /usr/local/bin/
 
-EXPOSE 80
+# Run on non priviledged port
+EXPOSE 8080
+RUN sed -i "s/Listen 80/Listen 8080/g" /usr/local/apache2/conf/httpd.conf
+LABEL io.openshift.expose-services="8080:http"
+
+# Run as non priviledged user
+ENV MYDIRS="/var/log/httpd /var/run/httpd /usr/local/apache2"
+RUN chown -R 1001:0 ${MYDIRS} &&\
+    chmod -R g=u ${MYDIRS} &&\
+	chgrp 0 ${MYDIRS} 
+USER 1001
+
 CMD ["httpd-foreground"]
